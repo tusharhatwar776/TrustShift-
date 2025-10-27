@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+/**
+ * @title TrustShift
+ * @dev A decentralized reputation system where users can earn trust points and admin manages trust assignments.
+ */
+contract Project {
+    address public admin;
+    uint256 public userCount;
+
+    struct User {
+        uint256 id;
+        address userAddress;
+        uint256 trustPoints;
+    }
+
+    mapping(address => User) public users;
+    mapping(uint256 => address) public userIds;
+
+    event UserRegistered(uint256 indexed id, address indexed userAddress);
+    event TrustPointsAssigned(address indexed userAddress, uint256 points);
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    // ✅ Function 1: Register a new user
+    function registerUser() public {
+        require(users[msg.sender].userAddress == address(0), "User already registered");
+
+        userCount++;
+        users[msg.sender] = User(userCount, msg.sender, 0);
+        userIds[userCount] = msg.sender;
+
+        emit UserRegistered(userCount, msg.sender);
+    }
+
+    // ✅ Function 2: Assign trust points (admin only)
+    function assignTrustPoints(address _user, uint256 _points) public onlyAdmin {
+        require(users[_user].userAddress != address(0), "User not registered");
+        users[_user].trustPoints += _points;
+
+        emit TrustPointsAssigned(_user, _points);
+    }
+
+    // ✅ Function 3: View user trust points
+    function getTrustPoints(address _user) public view returns (uint256) {
+        require(users[_user].userAddress != address(0), "User not registered");
+        return users[_user].trustPoints;
+    }
+
+    // ✅ Function 4: Get user by ID
+    function getUserById(uint256 _id) public view returns (User memory) {
+        address userAddr = userIds[_id];
+        require(userAddr != address(0), "Invalid user ID");
+        return users[userAddr];
+    }
+}
