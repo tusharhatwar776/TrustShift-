@@ -1,27 +1,52 @@
-? Function 1: Register a new user
-    function registerUser() public {
-        require(users[msg.sender].userAddress == address(0), "User already registered");
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
 
-        userCount++;
-        users[msg.sender] = User(userCount, msg.sender, 0);
-        userIds[userCount] = msg.sender;
+/**
+ * @title TrustShift
+ * @notice A decentralized reputation and trust management system that enables users
+ *         to build and transfer reputation scores across platforms in a transparent way.
+ */
+contract Project {
+    address public admin;
+    uint256 public profileCount;
 
-        emit UserRegistered(userCount, msg.sender);
+    struct Profile {
+        uint256 id;
+        address user;
+        string name;
+        uint256 trustScore;
+        uint256 lastUpdated;
+        bool verified;
     }
 
-    ? Function 3: View user trust points
-    function getTrustPoints(address _user) public view returns (uint256) {
-        require(users[_user].userAddress != address(0), "User not registered");
-        return users[_user].trustPoints;
+    mapping(address => Profile) public profiles;
+
+    event ProfileCreated(uint256 indexed id, address indexed user, string name);
+    event TrustScoreUpdated(address indexed user, uint256 newScore);
+    event ProfileVerified(address indexed user, bool verified);
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
     }
 
-    // ? Function 4: Get user by ID
-    function getUserById(uint256 _id) public view returns (User memory) {
-        address userAddr = userIds[_id];
-        require(userAddr != address(0), "Invalid user ID");
-        return users[userAddr];
+    constructor() {
+        admin = msg.sender;
     }
-}
-// 
-update
-// 
+
+    /**
+     * @notice Create a new user trust profile
+     * @param _name Name or identifier for the user
+     */
+    function createProfile(string memory _name) external {
+        require(bytes(_name).length > 0, "Name required");
+        require(profiles[msg.sender].user == address(0), "Profile already exists");
+
+        profileCount++;
+        profiles[msg.sender] = Profile({
+            id: profileCount,
+            user: msg.sender,
+            name: _name,
+            trustScore: 50, // default neutral trust score
+            lastUpdated: block.timestamp,
+            ve
